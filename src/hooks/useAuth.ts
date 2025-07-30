@@ -1,24 +1,26 @@
-// hooks/useAuth.ts
 'use client';
 
 import { useState, useEffect } from 'react';
 import client from '@/lib/pocketbase';
 
+interface UserModel {
+  id: string;
+  email?: string;
+  [key: string]: any;
+}
+
 export function useAuth() {
-  const [user, setUser] = useState(client.authStore.model);
+  const [user, setUser] = useState<UserModel | null>(client.authStore.model);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set initial user
     setUser(client.authStore.model);
     setIsLoading(false);
 
-    // Subscribe to auth changes
     const removeListener = client.authStore.onChange(() => {
       setUser(client.authStore.model);
     });
 
-    // Clean up on unmount
     return () => {
       removeListener();
     };
@@ -26,15 +28,32 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
-    await client.collection('users').authWithPassword(email, password);
+
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!res.ok) {
+      const msg = await res.text();
+      console.error("Login failed:", res.status, msg);
+      setIsLoading(false);
+      throw new Error("Login failed");
+    }
+
+    // ✅ We no longer set `client.authStore.model` manually
+    // Just refresh the state from the cookie
+    await client.authStore.loadFromCookie(document.cookie);
     setUser(client.authStore.model);
     setIsLoading(false);
   };
 
-  const logout = () => {
-    client.authStore.clear();
-    setUser(null);
-  };
+ const logout = async () => {
+  await fetch("/api/logout", { method: "POST" }); // Clear cookie server side
+  client.authStore.clear(); // Clear client-side auth
+  setUser(null);
+};
 
   return {
     user,

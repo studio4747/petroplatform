@@ -2,10 +2,14 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { LogoutButton } from "@/components/logout-button";
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+
+  if (!user) {
+    redirect("/login");
+  }
 
   return (
     <div className="flex h-screen">
@@ -17,10 +21,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           <Link href="/dashboard/companies" className="block hover:underline">شرکت‌ها</Link>
           <Link href="/dashboard/messages" className="block hover:underline">پیام‌ها</Link>
         </nav>
+        <LogoutButton />
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+      <main className="flex-1 p-6 overflow-y-auto">
+        {children}
+      </main>
     </div>
   );
 }
