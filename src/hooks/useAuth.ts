@@ -1,4 +1,6 @@
 // hooks/useAuth.ts
+'use client';
+
 import { useState, useEffect } from 'react';
 import client from '@/lib/pocketbase';
 
@@ -7,24 +9,38 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Set initial user
     setUser(client.authStore.model);
     setIsLoading(false);
 
-    client.authStore.onChange(() => {
+    // Subscribe to auth changes
+    const removeListener = client.authStore.onChange(() => {
       setUser(client.authStore.model);
     });
+
+    // Clean up on unmount
+    return () => {
+      removeListener();
+    };
   }, []);
+
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    await client.collection('users').authWithPassword(email, password);
+    setUser(client.authStore.model);
+    setIsLoading(false);
+  };
+
+  const logout = () => {
+    client.authStore.clear();
+    setUser(null);
+  };
 
   return {
     user,
     isLoading,
-    login: async (email: string, password: string) => {
-      await client.collection('users').authWithPassword(email, password);
-      setUser(client.authStore.model);
-    },
-    logout: () => {
-      client.authStore.clear();
-      setUser(null);
-    }
+    isAuthenticated: client.authStore.isValid,
+    login,
+    logout
   };
 }

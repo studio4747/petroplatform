@@ -1,24 +1,34 @@
-// src/app/login/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
+import pb from '@/lib/pocketbase';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth(); // isAuthenticated === authStore.isValid
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  // ✅ Redirect if already logged in
+  useEffect(() => {
+  if (typeof window !== 'undefined') {
+    const isLoggedIn = pb.authStore.isValid;
+    if (isLoggedIn) {
+      router.push('/dashboard');
+    }
+  }
+}, []);
+
   const handleLogin = async () => {
     try {
       await login(email, password);
-      router.push('/dashboard'); // Redirect after login
+      router.push('/dashboard');
     } catch (err) {
       setError('Login failed. Please check your credentials.');
     }
