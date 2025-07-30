@@ -2,21 +2,21 @@ import { cookies } from "next/headers";
 import PocketBase from "pocketbase";
 
 export async function getCurrentUser() {
-  const pb = new PocketBase(process.env.NEXT_PUBLIC_PB_URL || "http://127.0.0.1:8090");
+  const cookieStore = await cookies(); 
 
-  const cookieStore = await cookies(); // await here
+  const pbAuth = (cookieStore as any).get("pb_auth");
 
-  const pbAuthCookie = cookieStore.get("pb_auth");
-  if (!pbAuthCookie) {
-    return null; // no auth cookie, no user
-  }
+  if (!pbAuth) return null;
 
-  pb.authStore.loadFromCookie(`pb_auth=${pbAuthCookie.value}`);
+  const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL || "https://90c731db7d01.ngrok-free.app");
 
   try {
+    pb.authStore.loadFromCookie(`pb_auth=${pbAuth.value}`);
     await pb.collection("users").authRefresh();
-    return pb.authStore.model || null;
-  } catch (err) {
+    return pb.authStore.model;
+  } catch (error) {
+    console.log("Auth refresh error:", error);
     return null;
   }
 }
+

@@ -1,7 +1,7 @@
 // lib/pocketbase.ts
 import PocketBase from 'pocketbase';
 
-const client = new PocketBase('http://127.0.0.1:8090'); // Use your local server or change to deployed URL later
+const client = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL!);
 
 // Optional: Persist auth across refreshes
 if (typeof window !== 'undefined') {
