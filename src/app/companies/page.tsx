@@ -1,4 +1,5 @@
 // app/companies/page.tsx
+
 import { getCompaniesList } from "@/lib/actions";
 import Link from "next/link";
 
