@@ -2,12 +2,32 @@
 import PocketBase from "pocketbase";
 import { cookies } from "next/headers";
 
-const pb = new PocketBase(process.env.NEXT_PUBLIC_PB_URL || "http://127.0.0.1:8090");
-pb.authStore.loadFromCookie(cookies().toString());
+const POCKETBASE_URL =
+  process.env.NEXT_PUBLIC_POCKETBASE_URL || process.env.NEXT_PUBLIC_PB_URL || "http://127.0.0.1:8090";
+
+/**
+ * Creates a PocketBase client and loads auth from current request cookies if available.
+ */
+async function createClientFromRequest() {
+  const pb = new PocketBase(POCKETBASE_URL);
+  try {
+    const cookieStore = await cookies(); // await because in your setup it's a Promise
+    const pbAuth = cookieStore.get("pb_auth");
+    if (pbAuth) {
+      pb.authStore.loadFromCookie(`pb_auth=${pbAuth.value}`);
+    }
+  } catch (e) {
+    console.warn("could not load auth from cookies:", e);
+  }
+  return pb;
+}
 
 export async function getCompaniesList() {
   try {
-    const result = await pb.collection("companies").getFullList({ sort: "-created" });
+    const pb = await createClientFromRequest();
+    const result = await pb
+      .collection("companies")
+      .getFullList({ sort: "-created" });
     return result;
   } catch (err) {
     console.error("Failed to fetch companies:", err);
@@ -15,9 +35,9 @@ export async function getCompaniesList() {
   }
 }
 
-// ✅ ADD THIS FUNCTION
 export async function getCompanyById(id: string) {
   try {
+    const pb = await createClientFromRequest();
     const result = await pb.collection("companies").getOne(id);
     return result;
   } catch (err) {
