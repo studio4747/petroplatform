@@ -1,4 +1,5 @@
 // app/page.tsx
+import RecentProducts from "@/components/RecentProducts";
 
 export default function HomePage() {
   return (
@@ -60,6 +61,8 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+        <RecentProducts />
     </section>
+
   );
 }
