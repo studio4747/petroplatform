@@ -7,13 +7,11 @@ export type Product = {
   image?: string;
 };
 
-export interface RecordModel {
-  id: string;
-  collectionId: string;
-  collectionName: string;
-  created: string;
-  updated: string;
-  name?: string;
-  tags?: string[];
-  image?: string;
+export type RecordModel = {
+  id: string
+  name: string
+  tags: string | string[] // this is the key!
+  image?: string
+  created: string
+  updated: string
 }

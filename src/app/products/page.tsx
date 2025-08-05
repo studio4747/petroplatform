@@ -1,20 +1,25 @@
 import { getProductsList } from '@/lib/actions';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types';
-import type { RecordModel } from '@/types'; // Add this import if RecordModel is defined in your types
+import type { RecordModel } from '@/types';
 
 export default async function ProductsPage() {
   const rawRecordModels = await getProductsList();
+
   const recordModels: RecordModel[] = rawRecordModels.map((record: any) => ({
     ...record,
-    created: record.created ?? '', // Provide default value if missing
-    updated: record.updated ?? '', // Provide default value if missing
+    created: record.created ?? '',
+    updated: record.updated ?? '',
   }));
+
   const products: Product[] = recordModels.map((record) => ({
-    name: record.name ?? '', // Provide default value if missing
-    tags: record.tags ?? [], // Provide default value if missing
-    // Add other properties from RecordModel as needed
     ...record,
+    name: record.name ?? '',
+    tags: Array.isArray(record.tags)
+      ? record.tags
+      : typeof record.tags === 'string'
+      ? record.tags.split(',').map((tag: string) => tag.trim())
+      : [],
   }));
 
   return (
