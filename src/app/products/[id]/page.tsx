@@ -1,38 +1,93 @@
-import { getProductById } from "@/lib/actions";
-import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import Image from "next/image";
+import { getProductById, getCompanyById } from "@/lib/actions";
+import { getImageUrl } from "@/lib/utils";
 
-interface ProductPageProps {
+type ProductPageProps = {
   params: {
     id: string;
   };
-}
+};
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const product = await getProductById(params.id);
 
   if (!product) return notFound();
 
-  const {
-    name,
-    description,
-    technical_specs,
-    msds_file,
-    datasheet_file,
-    expand,
-  } = product;
-
-  const company = expand?.company_id;
+  const company = product.company ? await getCompanyById(product.company) : null;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="p-4 max-w-4xl mx-auto space-y-6 bg-white rounded-xl shadow">
       {/* Title */}
-      <h1 className="text-3xl font-bold">{name}</h1>
+      <h1 className="text-2xl font-bold">{product.name}</h1>
 
-      {/* Supplier preview */}
+      {/* Image */}
+      {product.image && (
+        <div className="relative w-full h-64 rounded overflow-hidden">
+          <Image
+            src={getImageUrl(product)}
+            alt={product.name}
+            fill
+            className="object-cover"
+          />
+        </div>
+      )}
+
+      {/* Description */}
+      {product.description && (
+        <div>
+          <h2 className="font-semibold mb-2">توضیحات</h2>
+          <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
+        </div>
+      )}
+
+      {/* Technical Specs */}
+      {product.specs && product.specs.length > 0 && (
+        <div>
+          <h2 className="font-semibold mb-2">مشخصات فنی</h2>
+          <table className="w-full text-sm border rounded overflow-hidden rtl text-right">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">مشخصه</th>
+                <th className="p-2 border">مقدار</th>
+              </tr>
+            </thead>
+            <tbody>
+              {product.specs.map((spec: { key: string; value: string }, index: number) => (
+                <tr key={index}>
+                  <td className="p-2 border">{spec.key}</td>
+                  <td className="p-2 border">{spec.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Files */}
+      {product.files && product.files.length > 0 && (
+        <div>
+          <h2 className="font-semibold mb-2">فایل‌ها</h2>
+          <ul className="list-disc list-inside text-sm">
+            {product.files.map((file: string, index: number) => (
+              <li key={index}>
+                <a
+                  href={file}
+                  className="text-blue-600 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  دانلود فایل {index + 1}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Supplier Info */}
       {company && (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mt-6 border-t pt-4">
           {company.logo && (
             <Image
               src={company.logo}
@@ -42,76 +97,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
               className="rounded-full object-cover"
             />
           )}
-          <Link
-            href={`/companies/${company.id}`}
-            className="text-blue-600 hover:underline"
-          >
-            {company.name}
-          </Link>
+          <div>
+            <p className="font-semibold">{company.name}</p>
+            <a
+              href={`/companies/${company.id}`}
+              className="text-blue-600 text-sm hover:underline"
+            >
+              مشاهده پروفایل تامین‌کننده
+            </a>
+          </div>
         </div>
       )}
-
-      {/* Description */}
-      {description && (
-        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-          {description}
-        </p>
-      )}
-
-      {/* Technical Specs Table */}
-      {technical_specs && technical_specs.length > 0 && (
-        <div>
-          <h2 className="text-xl font-semibold mt-6 mb-2">مشخصات فنی</h2>
-          <table className="w-full border border-gray-300 text-sm">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border p-2">ویژگی</th>
-                <th className="border p-2">مقدار</th>
-              </tr>
-            </thead>
-            <tbody>
-              {technical_specs.map((spec: any, index: number) => (
-                <tr key={index}>
-                  <td className="border p-2">{spec.key}</td>
-                  <td className="border p-2">{spec.value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Files */}
-      <div className="flex flex-wrap gap-4 mt-6">
-        {msds_file && (
-          <a
-            href={msds_file}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-white bg-blue-500 px-4 py-2 rounded hover:bg-blue-600"
-          >
-            دریافت MSDS
-          </a>
-        )}
-        {datasheet_file && (
-          <a
-            href={datasheet_file}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-white bg-green-500 px-4 py-2 rounded hover:bg-green-600"
-          >
-            دریافت دیتاشیت
-          </a>
-        )}
-      </div>
 
       {/* Buttons */}
-      <div className="flex gap-4 mt-6">
-        <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
-          درخواست خرید
+      <div className="flex gap-4 pt-4 border-t">
+        <button className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+          درخواست قیمت
         </button>
-        <button className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded">
-          پیام به تامین‌کننده
+        <button className="flex-1 border py-2 rounded hover:bg-gray-100">
+          پیام
         </button>
       </div>
     </div>
