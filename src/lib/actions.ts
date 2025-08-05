@@ -4,9 +4,6 @@ import { cookies } from "next/headers";
 const POCKETBASE_URL =
   process.env.NEXT_PUBLIC_POCKETBASE_URL || process.env.NEXT_PUBLIC_PB_URL || "http://127.0.0.1:8090";
 
-/**
- * Creates a PocketBase client and loads auth from current request cookies if available.
- */
 async function createClientFromRequest() {
   const pb = new PocketBase(POCKETBASE_URL);
   try {
@@ -45,9 +42,19 @@ export async function getCompanyById(id: string) {
   }
 }
 
-//
-// ✅ Add this new function for products:
-//
+export async function getProductById(id: string) {
+  try {
+    const pb = await createClientFromRequest();
+    const product = await pb.collection("products").getOne(id, {
+      expand: "company_id",
+    });
+    return product;
+  } catch (err) {
+    console.error("Failed to fetch product by ID:", err);
+    return null;
+  }
+}
+
 export async function getProductsList() {
   try {
     const pb = await createClientFromRequest();
