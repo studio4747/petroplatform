@@ -1,4 +1,3 @@
-// src/lib/actions.ts
 import PocketBase from "pocketbase";
 import { cookies } from "next/headers";
 
@@ -43,7 +42,6 @@ export async function getCompanyById(id: string) {
   }
 }
 
-// ✅ اینو اضافه کن:
 export async function getProductById(id: string) {
   try {
     const pb = await createClientFromRequest();
@@ -54,5 +52,18 @@ export async function getProductById(id: string) {
   } catch (err) {
     console.error("Failed to fetch product by ID:", err);
     return null;
+  }
+}
+
+export async function getProductsList() {
+  try {
+    const pb = await createClientFromRequest();
+    const result = await pb
+      .collection("products")
+      .getFullList({ sort: "-created", expand: "company" }); // Add expand if you want company details
+    return result;
+  } catch (err) {
+    console.error("Failed to fetch products:", err);
+    return [];
   }
 }
