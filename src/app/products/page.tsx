@@ -1,39 +1,45 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { getProductsListClient } from '@/lib/clientActions';
-import ProductCard from '@/components/ProductCard';
-import type { Product } from '@/types';
+import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getFilteredProductsClient } from "@/lib/clientActions";
+import ProductCard from "@/components/ProductCard";
+import type { Product } from "@/types";
 
 export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [substance, setSubstance] = useState(searchParams.get('substance') || '');
-  const [quantity, setQuantity] = useState(searchParams.get('quantity') || '');
-  const [industry, setIndustry] = useState(searchParams.get('industry') || '');
+  const [substance, setSubstance] = useState(searchParams.get("substance") || "");
+  const [quantity, setQuantity] = useState(searchParams.get("quantity") || "");
+  const [industry, setIndustry] = useState(searchParams.get("industry") || "");
 
   useEffect(() => {
-    const fetchData = async () => {
-      const rawRecordModels = await getProductsListClient();
+    const fetchProducts = async () => {
+      const query = {
+        substance: searchParams.get("substance") || undefined,
+        quantity: searchParams.get("quantity") || undefined,
+        industry: searchParams.get("industry") || undefined,
+      };
 
-      const products = rawRecordModels.map((record: any) => ({
+      const rawProducts = await getFilteredProductsClient(query);
+
+      const products = rawProducts.map((record: any) => ({
         ...record,
-        name: record.name ?? '',
+        name: record.name ?? "",
         tags: Array.isArray(record.tags)
           ? record.tags
-          : typeof record.tags === 'string'
-          ? record.tags.split(',').map((tag: string) => tag.trim())
+          : typeof record.tags === "string"
+          ? record.tags.split(",").map((tag: string) => tag.trim())
           : [],
       }));
 
       setProducts(products);
     };
 
-    fetchData();
-  }, []);
+    fetchProducts();
+  }, [searchParams.toString()]);
 
   const updateSearchParams = (key: string, value: string) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()));
@@ -50,9 +56,9 @@ export default function ProductsPage() {
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    if (name === 'substance') setSubstance(value);
-    else if (name === 'quantity') setQuantity(value);
-    else if (name === 'industry') setIndustry(value);
+    if (name === "substance") setSubstance(value);
+    else if (name === "quantity") setQuantity(value);
+    else if (name === "industry") setIndustry(value);
 
     updateSearchParams(name, value);
   };
@@ -61,7 +67,6 @@ export default function ProductsPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">محصولات</h1>
 
-      {/* Filters */}
       <div className="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <input
           name="substance"
@@ -86,7 +91,6 @@ export default function ProductsPage() {
         />
       </div>
 
-      {/* Product Grid */}
       {products.length === 0 ? (
         <p className="text-gray-600">هیچ محصولی یافت نشد.</p>
       ) : (

@@ -2,12 +2,14 @@ import PocketBase from "pocketbase";
 import { cookies } from "next/headers";
 
 const POCKETBASE_URL =
-  process.env.NEXT_PUBLIC_POCKETBASE_URL || process.env.NEXT_PUBLIC_PB_URL || "http://127.0.0.1:8090";
+  process.env.NEXT_PUBLIC_POCKETBASE_URL ||
+  process.env.NEXT_PUBLIC_PB_URL ||
+  "http://127.0.0.1:8090";
 
 async function createClientFromRequest() {
   const pb = new PocketBase(POCKETBASE_URL);
   try {
-    const cookieStore = await cookies(); // await because in your setup it's a Promise
+    const cookieStore = await cookies();
     const pbAuth = cookieStore.get("pb_auth");
     if (pbAuth) {
       pb.authStore.loadFromCookie(`pb_auth=${pbAuth.value}`);
@@ -58,12 +60,68 @@ export async function getProductById(id: string) {
 export async function getProductsList() {
   try {
     const pb = await createClientFromRequest();
-    const result = await pb
-      .collection("products")
-      .getFullList({ sort: "-created", expand: "company" }); // Add expand if you want company details
+    const result = await pb.collection("products").getFullList({
+      sort: "-created",
+      expand: "company",
+    });
     return result;
   } catch (err) {
     console.error("Failed to fetch products:", err);
+    return [];
+  }
+}
+
+import client from '@/lib/pocketbase';
+
+export async function getFilteredProducts(query: {
+  substance?: string;
+  quantity?: string;
+  industry?: string;
+}) {
+  try {
+    const filters: string[] = [];
+
+    if (query.substance) {
+      filters.push(`substance ~ "${query.substance}"`);
+    }
+
+    if (query.quantity) {
+      filters.push(`quantity = ${query.quantity}`);
+    }
+
+    if (query.industry) {
+      filters.push(`industry = "${query.industry}"`);
+    }
+
+    const filterString = filters.length > 0 ? filters.join(" && ") : "";
+
+    const result = await client.collection("products").getFullList({
+      sort: "-created",
+      expand: "company",
+      filter: filterString,
+    });
+
+    return result;
+  } catch (err) {
+    console.error("Failed to fetch filtered products:", err);
+    return [];
+  }
+}
+
+export async function getUniqueIndustries() {
+  try {
+    const allProducts = await client.collection('products').getFullList({
+      fields: 'industry',
+    });
+
+    const industriesSet = new Set<string>();
+    allProducts.forEach((product) => {
+      if (product.industry) industriesSet.add(product.industry);
+    });
+
+    return Array.from(industriesSet);
+  } catch (error) {
+    console.error('Failed to fetch industries:', error);
     return [];
   }
 }
