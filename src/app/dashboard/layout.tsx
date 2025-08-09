@@ -20,8 +20,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           <Link href="/dashboard" className="block hover:underline">داشبورد</Link>
           <Link href="/dashboard/companies" className="block hover:underline">شرکت‌ها</Link>
           <Link href="/dashboard/messages" className="block hover:underline">پیام‌ها</Link>
+          <Link href="/dashboard/products" className="block hover:underline">محصولات من</Link>
         </nav>
-        <LogoutButton />
+
+        <div className="mt-8">
+          <LogoutButton />
+        </div>
       </aside>
 
       {/* Main Content */}

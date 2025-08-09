@@ -1,0 +1,8 @@
+.searchFormSection{
+    position: relative;
+    z-index: 100;
+    margin-top: -10%;
+}
+.tabsContainer{
+    gap: 10px;
+}
