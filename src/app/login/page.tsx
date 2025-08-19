@@ -18,13 +18,14 @@ export default function LoginPage() {
     if (typeof window !== 'undefined' && isAuthenticated) {
       router.push('/dashboard');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, router]);
 
   const handleLogin = async () => {
     try {
       await login(email, password);
       router.push('/dashboard');
     } catch (err) {
+      console.error(err);
       setError('ورود ناموفق بود. لطفاً اطلاعات خود را بررسی کنید.');
     }
   };

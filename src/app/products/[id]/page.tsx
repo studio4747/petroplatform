@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getProductById, getCompanyById } from "@/lib/actions";
 import { getImageUrl } from "@/lib/utils";
+import ProductSpecs from "@/components/ProductSpecs";
 
 type ProductPageProps = {
   params: {
@@ -19,7 +20,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <div className="p-4 max-w-4xl mx-auto space-y-6 bg-white rounded-xl shadow">
       {/* Title */}
-      <h1 className="text-2xl font-bold">{product.name}</h1>
+<h1 className="text-2xl font-bold flex items-center gap-2">
+  {product.title}
+  {product.Verified && (
+    <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
+      تایید شده
+    </span>
+  )}
+</h1>
 
       {/* Image */}
       {product.image && (
@@ -42,27 +50,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
       )}
 
       {/* Technical Specs */}
-      {product.specs && product.specs.length > 0 && (
-        <div>
-          <h2 className="font-semibold mb-2">مشخصات فنی</h2>
-          <table className="w-full text-sm border rounded overflow-hidden rtl text-right">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">مشخصه</th>
-                <th className="p-2 border">مقدار</th>
-              </tr>
-            </thead>
-            <tbody>
-              {product.specs.map((spec: { key: string; value: string }, index: number) => (
-                <tr key={index}>
-                  <td className="p-2 border">{spec.key}</td>
-                  <td className="p-2 border">{spec.value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+<ProductSpecs title={product.title} category={product.category} />
+
 
       {/* Files */}
       {product.files && product.files.length > 0 && (
