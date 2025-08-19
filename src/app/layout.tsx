@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
 import "@fontsource/vazirmatn";
+import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
   title: "شیمی ایران",
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl">
       <body className="font-vazir antialiased bg-white text-gray-900">
-        {children}
+         <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

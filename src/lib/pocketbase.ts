@@ -1,14 +1,22 @@
 // lib/pocketbase.ts
 import PocketBase from 'pocketbase';
 
-const client = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL!);
+const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL);
 
-// Optional: Persist auth across refreshes
+// Disable auto cancellation globally
+pb.autoCancellation(false);
+
+// Client-side only operations
 if (typeof window !== 'undefined') {
-  client.authStore.loadFromCookie(document.cookie || '');
-  client.authStore.onChange(() => {
-    document.cookie = client.authStore.exportToCookie({ httpOnly: false });
-  });
+  pb.authStore.loadFromCookie(document.cookie);
+  pb.authStore.onChange(() => {
+    document.cookie = pb.authStore.exportToCookie({
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      path: '/',
+    });
+  }, true);
 }
 
-export default client;
+export default pb;
