@@ -32,6 +32,7 @@ export function useAuth() {
     const res = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",  // اضافه کردن این خط بسیار مهم است
       body: JSON.stringify({ email, password }),
     });
 
@@ -42,24 +43,24 @@ export function useAuth() {
       throw new Error("Login failed");
     }
 
-    // ✅ We no longer set `client.authStore.model` manually
-    // Just refresh the state from the cookie
+    // پس از لاگین کوکی‌های httpOnly به صورت خودکار بارگذاری می‌شوند
+    // اما بهتر است ما صریحا کوکی‌ها را بارگذاری کنیم
     await client.authStore.loadFromCookie(document.cookie);
     setUser(client.authStore.model);
     setIsLoading(false);
   };
 
- const logout = async () => {
-  await fetch("/api/logout", { method: "POST" }); // Clear cookie server side
-  client.authStore.clear(); // Clear client-side auth
-  setUser(null);
-};
+  const logout = async () => {
+    await fetch("/api/logout", { method: "POST", credentials: "include" }); // اگر api/logout داری، کوکی را پاک کن
+    client.authStore.clear(); // پاک کردن authStore کلاینت
+    setUser(null);
+  };
 
   return {
     user,
     isLoading,
     isAuthenticated: client.authStore.isValid,
     login,
-    logout
+    logout,
   };
 }

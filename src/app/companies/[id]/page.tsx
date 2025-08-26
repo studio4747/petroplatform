@@ -34,6 +34,15 @@ export default async function CompanyDetailPage({ params }: Props) {
         )}
         <div>
           <h1 className="text-4xl font-bold">{company.name}</h1>
+          <h1 className="text-4xl font-bold flex items-center gap-2">
+  {company.name}
+  {company.isApproved && (
+    <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
+      تایید شده
+    </span>
+  )}
+</h1>
+
           <div className="text-sm text-gray-500 mt-1">
             {company.industry || company.category} — {company.city}
           </div>
